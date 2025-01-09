@@ -2,6 +2,9 @@
 
 using namespace std;
 
+
+// function to display board 
+
 void setBoard(vector<vector<char>> &board)
 {
     cout << "   a   b   c   d   e   f   g   h" << endl;
@@ -24,6 +27,9 @@ void setBoard(vector<vector<char>> &board)
      cout << "p represent black " << endl ;  
 }
 
+
+// function to parse position into row and column indices 
+
 pair<int, int> parsePos(string pos)
 {
 
@@ -33,11 +39,14 @@ pair<int, int> parsePos(string pos)
     return {row, col};
 }
 
+// function for pawn movement 
+
 bool isValidPawnMove(int srcRow, int srcCol, int desRow, int desCol, vector<vector<char>> &board, char piece)
 {
-    // white +1 move up black -1 move down
+    // determine direction white move up (+1) , black move down (-1)
     int direction = (piece == 'P') ? -1 : 1;
 
+    //check pawn do not move backward
     if ((piece == 'P' && desRow > srcRow) || (piece == 'p' && desRow < srcRow))
     {
         return false;
@@ -51,7 +60,7 @@ bool isValidPawnMove(int srcRow, int srcCol, int desRow, int desCol, vector<vect
 
     // double start move
     if (srcCol == desCol && board[desRow][desCol] == '.' && desRow == srcRow + 2 * direction)
-    {
+    {   
         int forward = srcRow + direction;
         if (board[forward][srcCol] == '.')  
         {
@@ -59,7 +68,7 @@ bool isValidPawnMove(int srcRow, int srcCol, int desRow, int desCol, vector<vect
         }
     }
 
-    // capture
+    // capture mechznics
     if (abs(desCol - srcCol) == 1 && desRow == srcRow + direction && board[desRow][desCol] != '.' &&
         islower(piece) != islower(board[desRow][desCol]))
     {
@@ -69,26 +78,33 @@ bool isValidPawnMove(int srcRow, int srcCol, int desRow, int desCol, vector<vect
     return false;
 }
 
+// function for knight's movement 
 bool isValidKnightMove(int srcRow, int srcCol, int desRow, int desCol)
 {
+     // l shape movement 
     bool row = abs(srcRow - desRow) == 2 && abs(srcCol - desCol) == 1;
     bool col = abs(srcRow - desRow) == 1 && abs(srcCol - desCol) == 2;
 
     return row || col;
 }
 
+// function move bishop movement 
 bool isValidBishopMove(int srcRow, int srcCol, int desRow, int desCol, vector<vector<char>> &board)
 {
+    // check diagnol movement 
     if (abs(srcRow - desRow) != abs(srcCol - desCol))
     {
         return false;
     }
 
+    // check movement left right +1 and left -1 
     int rowDir = (desRow > srcRow) ? 1 : -1;
     int colDir = (desCol > srcCol) ? 1 : -1;
 
     int currRow = srcRow + rowDir;
     int currCol = srcCol + colDir;
+
+    // path block logic
     while (currRow != desRow && currCol != desCol)
     {
         if (board[currRow][currCol] != '.')
@@ -102,17 +118,21 @@ bool isValidBishopMove(int srcRow, int srcCol, int desRow, int desCol, vector<ve
     return true;
 }
 
+
+// function for rook's movement 
+
 bool isValidRookMove(int srcRow, int srcCol, int desRow, int desCol, vector<vector<char>> &board)
-{
+{   
+    // check for staright movement
     if (srcRow != desRow && srcCol != desCol)
     {
         return false;
     }
 
     if (srcRow == desRow)
-    { // Horizontal
+    { // Horizontal movement 
         int colDir = (desCol > srcCol) ? 1 : -1;
-        for (int col = srcCol + colDir; col != desCol; col += colDir)
+        for (int col = srcCol + colDir; col <= desCol; col += colDir)
         {
             if (board[srcRow][col] != '.')
             {
@@ -122,7 +142,7 @@ bool isValidRookMove(int srcRow, int srcCol, int desRow, int desCol, vector<vect
     }
 
     else
-    { // Vertical
+    { // Vertical movement 
         int rowDir = (desRow > srcRow) ? 1 : -1;
         for (int row = srcRow + rowDir; row != desRow; row += rowDir)
         {
@@ -136,14 +156,21 @@ bool isValidRookMove(int srcRow, int srcCol, int desRow, int desCol, vector<vect
     return true;
 }
 
+ // function for queen movement 
 bool isValidQueenMove(int srcRow, int srcCol, int desRow, int desCol, vector<vector<char>> &board)
 {
+    // combination of bishop and rook's movement 
     return isValidRookMove(srcRow, srcCol, desRow, desCol, board) ||
            isValidBishopMove(srcRow, srcCol, desRow, desCol, board);
 }
 
+
+// function for king's movement
+
 bool isValidKingMove(int srcRow, int srcCol, int desRow, int desCol)
 {
+    // only one move in either 4 direction
+
     return abs(srcRow - desRow) <= 1 && abs(srcCol - desCol) <= 1;
 }
 
@@ -188,6 +215,8 @@ bool legalMove(string move, vector<vector<char>> &board, bool turn)
         return false;
     }
 
+    // validate each piece movement 
+
     bool valid = false;
 
     if (tolower(piece) == 'p')
@@ -224,6 +253,9 @@ bool legalMove(string move, vector<vector<char>> &board, bool turn)
 
     return valid;
 }
+
+
+// function to find if king in check
 
 bool kingIncheck(int kingRow, int kingCol, vector<vector<char>> &board, bool turn) {
     for(int i = 0; i < 8; i++) {
@@ -272,6 +304,7 @@ bool kingIncheck(int kingRow, int kingCol, vector<vector<char>> &board, bool tur
 
             // If the piece can attack the king, return true
             if (canAttack) {
+                cout << "King in Check " << endl ;
                 return true;
             }
         }
@@ -279,6 +312,8 @@ bool kingIncheck(int kingRow, int kingCol, vector<vector<char>> &board, bool tur
 
     return false; // No attack found, king is safe
 }
+
+//function for checkomate implementaion
 
 bool checkMate(vector<vector<char>>& board , bool turn){
     int kingR , kingC;
@@ -293,7 +328,6 @@ bool checkMate(vector<vector<char>>& board , bool turn){
     }
 
     if(kingIncheck(kingR,kingC,board,turn)){
-        cout << "King in Check " << endl ;
         return true ;
     }
 
@@ -304,6 +338,7 @@ bool checkMate(vector<vector<char>>& board , bool turn){
 int main()
 {
     vector<vector<char>> board(8, vector<char>(8, '.'));
+    // black pieces
     board[0] = {'r', 'n', 'b', 'q', 'k', 'b', 'n', 'r'};
     board[1] = {'p', 'p', 'p', 'p', 'p', 'p', 'p', 'p'};
 
@@ -324,7 +359,7 @@ int main()
         else{
             cout << "Black's turn " << endl ;
         }
-        cout << "Enter your move (eg e2 e4) " << endl;
+        cout << "Enter your move (eg: e2 e4) " << endl;
         string move;
         getline(cin, move);
 
@@ -336,8 +371,8 @@ int main()
 
         if (!legalMove(move, board ,turn))
         {
-            cout << "Illegal Move !! Try again " << endl;
-            continue;
+            cout << "Illegal Move !! Try again !!!" << endl;
+            continue;   
         }
 
         if(checkMate(board,turn)){
